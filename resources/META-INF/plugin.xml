@@ -24,13 +24,15 @@
     -->
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
+        <toolWindow id="Marims" secondary="true" icon="/images/plus.png" anchor="right"
+                    factoryClass="pl.edu.agh.marims.plugin.MarimsToolWindowFactory"/>
     </extensions>
 
     <actions>
         <group id="Marims.Menu" text="_Marims" description="Marims menu">
-            <add-to-group group-id="MainMenu" anchor="last"  />
-            <action id="Marims.Menu.OpenPanel" class="pl.edu.agh.marims.plugin.Menu" text="_Open Panel" description="Open Marims main panel" />
+            <add-to-group group-id="MainMenu" anchor="last"/>
+            <action id="Marims.Menu.OpenPanel" class="pl.edu.agh.marims.plugin.Menu" text="_Open Panel"
+                    description="Open Marims main panel"/>
         </group>
     </actions>
 
