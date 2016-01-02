@@ -23,6 +23,9 @@
     <depends>com.intellij.modules.lang</depends>
     -->
 
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.androidstudio</depends>
+
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Marims" secondary="true" icon="/images/plus.png" anchor="right"
                     factoryClass="pl.edu.agh.marims.plugin.MarimsToolWindowFactory"/>
