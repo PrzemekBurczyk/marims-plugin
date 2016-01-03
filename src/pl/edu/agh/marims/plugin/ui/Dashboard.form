@@ -18,7 +18,7 @@
           <model/>
         </properties>
       </component>
-      <grid id="5731d" layout-manager="BorderLayout" hgap="0" vgap="0">
+      <grid id="5731d" layout-manager="BorderLayout" hgap="5" vgap="0">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -26,6 +26,7 @@
           <background color="-12828863"/>
         </properties>
         <border type="empty">
+          <title-color color="-4473925"/>
           <size top="5" left="5" bottom="5" right="5"/>
           <color color="-8223353"/>
         </border>
@@ -94,10 +95,26 @@
               <text value="Send a file"/>
             </properties>
           </component>
-          <component id="bde1c" class="javax.swing.JProgressBar" binding="sendFileProgressBar" default-binding="true">
+          <grid id="7aecf" layout-manager="GridBagLayout">
             <constraints border-constraint="Center"/>
             <properties/>
-          </component>
+            <border type="none"/>
+            <children>
+              <component id="bde1c" class="javax.swing.JProgressBar" binding="sendFileProgressBar" default-binding="true">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="1.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <borderPainted value="true"/>
+                  <font/>
+                  <indeterminate value="false"/>
+                  <orientation value="0"/>
+                  <stringPainted value="true"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
         </children>
       </grid>
     </children>

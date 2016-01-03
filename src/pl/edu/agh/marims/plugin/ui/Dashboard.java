@@ -1,5 +1,6 @@
 package pl.edu.agh.marims.plugin.ui;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -8,6 +9,7 @@ import com.intellij.ui.content.ContentFactory;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 import org.jetbrains.annotations.NotNull;
+import pl.edu.agh.marims.plugin.network.FileRequestBody;
 import pl.edu.agh.marims.plugin.network.MarimsApiClient;
 import pl.edu.agh.marims.plugin.network.MarimsService;
 import retrofit.Callback;
@@ -39,7 +41,7 @@ public class Dashboard implements ToolWindowFactory {
     public Dashboard() {
         initInterface();
         initListeners();
-        initData();
+        fetchData();
     }
 
     private void initInterface() {
@@ -65,13 +67,17 @@ public class Dashboard implements ToolWindowFactory {
         });
 
         sendFileButton.addActionListener(e -> {
-            RequestBody file = RequestBody.create(MediaType.parse("application/octet-stream"), selectedFile);
+            RequestBody file = new FileRequestBody(selectedFile, (current, max) -> {
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    sendFileProgressBar.setValue((int) (current * 100 / max));
+                });
+            });
             RequestBody applicationName = RequestBody.create(MediaType.parse("text/plain"), "test");
             RequestBody applicarionVersion = RequestBody.create(MediaType.parse("text/plain"), "0.7");
             marimsService.postFile(applicationName, applicarionVersion, file).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Response<Void> response, Retrofit retrofit) {
-                    System.out.println(response.code());
+                    fetchData();
                 }
 
                 @Override
@@ -82,12 +88,14 @@ public class Dashboard implements ToolWindowFactory {
         });
     }
 
-    public void initData() {
+    private void fetchData() {
         marimsService.getFiles().enqueue(new Callback<List<String>>() {
             @Override
             public void onResponse(Response<List<String>> response, Retrofit retrofit) {
-                listModel.clear();
-                response.body().forEach((file) -> listModel.addElement(file));
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    listModel.clear();
+                    response.body().forEach((file) -> listModel.addElement(file));
+                });
             }
 
             @Override
