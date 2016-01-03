@@ -31,6 +31,11 @@
                     factoryClass="pl.edu.agh.marims.plugin.MarimsToolWindowFactory"/>
     </extensions>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Marims.Dashboard" secondary="true" icon="/images/plus.png" anchor="right"
+                    factoryClass="pl.edu.agh.marims.plugin.Dashboard"/>
+    </extensions>
+
     <actions>
         <group id="Marims.Menu" text="_Marims" description="Marims menu">
             <add-to-group group-id="MainMenu" anchor="last"/>
