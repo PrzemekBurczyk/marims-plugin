@@ -1,4 +1,4 @@
-package pl.edu.agh.marims.plugin;
+package pl.edu.agh.marims.plugin.ui;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;

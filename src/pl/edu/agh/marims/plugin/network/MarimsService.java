@@ -1,6 +1,7 @@
 package pl.edu.agh.marims.plugin.network;
 
-import okhttp3.RequestBody;
+import com.squareup.okhttp.RequestBody;
+import retrofit.Call;
 import retrofit.http.*;
 
 import java.util.List;
@@ -8,12 +9,12 @@ import java.util.List;
 public interface MarimsService {
 
     @GET("/files")
-    List<String> getFiles();
+    Call<List<String>> getFiles();
 
     @Multipart
     @POST("/files")
-    void postFile(@Part("file") RequestBody file);
+    Call<Void> postFile(@Part("applicationName") RequestBody applicationName, @Part("applicationVersion") RequestBody applicationVersion, @Part("file\"; filename=\"app.apk\"") RequestBody file);
 
     @DELETE("/files/{filename}")
-    void deleteFile(@Path("filename") String filename);
+    Call<Void> deleteFile(@Path("filename") String filename);
 }

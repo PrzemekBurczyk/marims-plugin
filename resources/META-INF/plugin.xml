@@ -28,12 +28,12 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Marims" secondary="true" icon="/images/plus.png" anchor="right"
-                    factoryClass="pl.edu.agh.marims.plugin.MarimsToolWindowFactory"/>
+                    factoryClass="pl.edu.agh.marims.plugin.ui.MarimsToolWindowFactory"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Marims.Dashboard" secondary="true" icon="/images/plus.png" anchor="right"
-                    factoryClass="pl.edu.agh.marims.plugin.Dashboard"/>
+                    factoryClass="pl.edu.agh.marims.plugin.ui.Dashboard"/>
     </extensions>
 
     <actions>
