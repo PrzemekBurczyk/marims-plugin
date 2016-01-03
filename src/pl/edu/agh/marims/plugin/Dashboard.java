@@ -8,6 +8,7 @@ import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.IOException;
 
@@ -18,11 +19,15 @@ public class Dashboard implements ToolWindowFactory {
     private JButton chooseFileButton;
     private JLabel chooseFileLabel;
 
+    private Project project;
+    private ToolWindow toolWindow;
     private File selectedFile;
 
     public Dashboard() {
         chooseFileButton.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
+            JFileChooser fileChooser = new JFileChooser(project.getBasePath());
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Android APKs", "apk");
+            fileChooser.setFileFilter(filter);
             int selectedOption = fileChooser.showOpenDialog(contentPanel);
             if (selectedOption == JFileChooser.APPROVE_OPTION) {
                 selectedFile = fileChooser.getSelectedFile();
@@ -37,6 +42,8 @@ public class Dashboard implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
+        this.project = project;
+        this.toolWindow = toolWindow;
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(contentPanel, "", false);
         toolWindow.getContentManager().addContent(content);
