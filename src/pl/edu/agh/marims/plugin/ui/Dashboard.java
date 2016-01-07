@@ -2,16 +2,22 @@ package pl.edu.agh.marims.plugin.ui;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
+import net.dongliu.apk.parser.ApkParser;
+import net.dongliu.apk.parser.bean.ApkMeta;
 import org.jetbrains.annotations.NotNull;
 import pl.edu.agh.marims.plugin.network.FileRequestBody;
 import pl.edu.agh.marims.plugin.network.MarimsApiClient;
 import pl.edu.agh.marims.plugin.network.MarimsService;
+import pl.edu.agh.marims.plugin.util.Version;
 import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
@@ -19,6 +25,7 @@ import retrofit.Retrofit;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class Dashboard implements ToolWindowFactory {
@@ -34,7 +41,11 @@ public class Dashboard implements ToolWindowFactory {
 
     private Project project;
     private ToolWindow toolWindow;
+
     private File selectedFile;
+    private String applicationName;
+    private String applicationVersion;
+    private Long applicationVersionCode;
 
     private MarimsService marimsService = MarimsApiClient.getInstance().getMarimsService();
 
@@ -49,6 +60,42 @@ public class Dashboard implements ToolWindowFactory {
         filesList.setModel(listModel);
     }
 
+    private VirtualFile getAaptFile() {
+        Sdk projectSdk = ProjectRootManager.getInstance(project).getProjectSdk();
+        if (projectSdk != null) {
+            VirtualFile sdkHomeDirectory = projectSdk.getHomeDirectory();
+            if (sdkHomeDirectory != null && sdkHomeDirectory.exists()) {
+                VirtualFile buildToolsDirectory = sdkHomeDirectory.findChild("build-tools");
+                if (buildToolsDirectory != null && buildToolsDirectory.exists()) {
+                    VirtualFile newestBuildToolsDirectory = Arrays.asList(buildToolsDirectory.getChildren())
+                            .stream()
+                            .filter(directory -> Version.isVersion(directory.getName()))
+                            .max((left, right) -> new Version(left.getName()).compareTo(new Version(right.getName())))
+                            .get();
+                    if (newestBuildToolsDirectory != null) {
+                        VirtualFile aaptFile = newestBuildToolsDirectory.findChild("aapt.exe");
+                        if (aaptFile != null && aaptFile.exists()) {
+                            return aaptFile;
+//                            Runtime.getRuntime().exec(Arrays.asList(new String[]{aaptFile.getCanonicalPath(), "dump", "badging", file.getCanonicalPath()})
+//                                    .stream()
+//                                    .collect(Collectors.joining(" ")));
+
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private void loadApplicationData(File file) throws IOException {
+        ApkParser apkParser = new ApkParser(file);
+        ApkMeta apkMeta = apkParser.getApkMeta();
+        applicationName = apkMeta.getLabel();
+        applicationVersion = apkMeta.getVersionName();
+        applicationVersionCode = apkMeta.getVersionCode();
+    }
+
     private void initListeners() {
         chooseFileButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser(project.getBasePath());
@@ -60,8 +107,11 @@ public class Dashboard implements ToolWindowFactory {
                 sendFileButton.setEnabled(true);
                 try {
                     chooseFileLabel.setText(selectedFile.getCanonicalPath());
+                    loadApplicationData(selectedFile);
                 } catch (IOException e1) {
                     e1.printStackTrace();
+                    selectedFile = null;
+                    sendFileButton.setEnabled(false);
                 }
             }
         });
@@ -72,6 +122,7 @@ public class Dashboard implements ToolWindowFactory {
                     sendFileProgressBar.setValue((int) (current * 100 / max));
                 });
             });
+
             RequestBody applicationName = RequestBody.create(MediaType.parse("text/plain"), "test");
             RequestBody applicarionVersion = RequestBody.create(MediaType.parse("text/plain"), "0.7");
             marimsService.postFile(applicationName, applicarionVersion, file).enqueue(new Callback<Void>() {
