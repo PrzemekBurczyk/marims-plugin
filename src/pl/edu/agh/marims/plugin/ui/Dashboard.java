@@ -38,6 +38,9 @@ public class Dashboard implements ToolWindowFactory {
     private JLabel chooseFileLabel;
     private JButton sendFileButton;
     private JProgressBar sendFileProgressBar;
+    private JLabel applicationNameTextField;
+    private JLabel applicationVersionTextField;
+    private JLabel applicationBuildTextField;
 
     private Project project;
     private ToolWindow toolWindow;
