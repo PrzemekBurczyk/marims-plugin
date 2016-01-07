@@ -41,6 +41,7 @@ public class Dashboard implements ToolWindowFactory {
     private JLabel applicationNameTextField;
     private JLabel applicationVersionTextField;
     private JLabel applicationVersionCodeTextField;
+    private JList sessionsList;
 
     private Project project;
     private ToolWindow toolWindow;
