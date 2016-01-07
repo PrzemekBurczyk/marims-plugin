@@ -40,7 +40,7 @@ public class Dashboard implements ToolWindowFactory {
     private JProgressBar sendFileProgressBar;
     private JLabel applicationNameTextField;
     private JLabel applicationVersionTextField;
-    private JLabel applicationBuildTextField;
+    private JLabel applicationVersionCodeTextField;
 
     private Project project;
     private ToolWindow toolWindow;
@@ -97,6 +97,16 @@ public class Dashboard implements ToolWindowFactory {
         applicationName = apkMeta.getLabel();
         applicationVersion = apkMeta.getVersionName();
         applicationVersionCode = apkMeta.getVersionCode();
+
+        applicationNameTextField.setText(applicationName);
+        applicationVersionTextField.setText(applicationVersion);
+        applicationVersionCodeTextField.setText(String.valueOf(applicationVersionCode));
+    }
+
+    private void clearApplicationMetaInformation() {
+        applicationNameTextField.setText("none");
+        applicationVersionTextField.setText("none");
+        applicationVersionCodeTextField.setText(String.valueOf("none"));
     }
 
     private void initListeners() {
@@ -115,6 +125,7 @@ public class Dashboard implements ToolWindowFactory {
                     e1.printStackTrace();
                     selectedFile = null;
                     sendFileButton.setEnabled(false);
+                    clearApplicationMetaInformation();
                 }
             }
         });
@@ -126,9 +137,9 @@ public class Dashboard implements ToolWindowFactory {
                 });
             });
 
-            RequestBody applicationName = RequestBody.create(MediaType.parse("text/plain"), "test");
-            RequestBody applicarionVersion = RequestBody.create(MediaType.parse("text/plain"), "0.7");
-            marimsService.postFile(applicationName, applicarionVersion, file).enqueue(new Callback<Void>() {
+            RequestBody applicationNameBody = RequestBody.create(MediaType.parse("text/plain"), applicationName);
+            RequestBody applicationVersionBody = RequestBody.create(MediaType.parse("text/plain"), applicationVersion);
+            marimsService.postFile(applicationNameBody, applicationVersionBody, file).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Response<Void> response, Retrofit retrofit) {
                     fetchData();

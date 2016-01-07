@@ -107,6 +107,7 @@
                 </constraints>
                 <properties>
                   <borderPainted value="true"/>
+                  <enabled value="true"/>
                   <font/>
                   <indeterminate value="false"/>
                   <orientation value="0"/>
@@ -214,7 +215,7 @@
                   <color color="-10394522"/>
                 </border>
                 <children>
-                  <component id="355c6" class="javax.swing.JLabel" binding="applicationBuildTextField">
+                  <component id="355c6" class="javax.swing.JLabel" binding="applicationVersionCodeTextField">
                     <constraints/>
                     <properties>
                       <text value="none"/>
