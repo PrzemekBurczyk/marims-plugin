@@ -133,7 +133,7 @@ public class Dashboard implements ToolWindowFactory {
         connectToSessionItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                String sessionId = sessionsList.getSelectedValue().getId();
             }
         });
 
@@ -315,15 +315,6 @@ public class Dashboard implements ToolWindowFactory {
         });
     }
 
-    @Override
-    public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        this.project = project;
-        this.toolWindow = toolWindow;
-        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-        Content content = contentFactory.createContent(contentPanel, "", false);
-        toolWindow.getContentManager().addContent(content);
-    }
-
     private void refreshFilesList(List<String> files) {
         filesListModel.clear();
         files.forEach((file) -> filesListModel.addElement(file));
@@ -333,9 +324,19 @@ public class Dashboard implements ToolWindowFactory {
     private void refreshSessionsList() {
         sessionsListModel.clear();
         String selectedFile = filesList.getSelectedValue();
-        sessions.stream()
-                .filter((session) -> selectedFile.equals(DEFAULT_FILE) ? session.getFile() == null : selectedFile.equals(session.getFile()))
-                .forEach((session) -> sessionsListModel.addElement(session));
+        if (selectedFile != null) {
+            sessions.stream()
+                    .filter((session) -> selectedFile.equals(DEFAULT_FILE) ? session.getFile() == null : selectedFile.equals(session.getFile()))
+                    .forEach((session) -> sessionsListModel.addElement(session));
+        }
     }
 
+    @Override
+    public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
+        this.project = project;
+        this.toolWindow = toolWindow;
+        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+        Content content = contentFactory.createContent(contentPanel, "", false);
+        toolWindow.getContentManager().addContent(content);
+    }
 }
