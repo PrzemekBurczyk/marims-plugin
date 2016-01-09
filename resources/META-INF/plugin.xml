@@ -30,12 +30,7 @@
     <!--<depends>org.jetbrains.plugins.gradle</depends>-->
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Marims" secondary="true" icon="/images/plus.png" anchor="right"
-                    factoryClass="pl.edu.agh.marims.plugin.ui.MarimsToolWindowFactory"/>
-    </extensions>
-
-    <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Marims.Dashboard" secondary="true" icon="/images/marims.png" anchor="right"
+        <toolWindow id="Marims" secondary="true" icon="/images/marims.png" anchor="right"
                     factoryClass="pl.edu.agh.marims.plugin.ui.Dashboard"/>
     </extensions>
 
