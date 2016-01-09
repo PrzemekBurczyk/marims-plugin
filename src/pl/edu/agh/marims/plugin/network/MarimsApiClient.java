@@ -1,5 +1,6 @@
 package pl.edu.agh.marims.plugin.network;
 
+import pl.edu.agh.marims.plugin.Config;
 import pl.edu.agh.marims.plugin.util.GsonUtil;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
@@ -9,11 +10,9 @@ public class MarimsApiClient {
     private static MarimsApiClient instance = null;
     private MarimsService marimsService;
 
-    private static final String BASE_URL = "http://localhost:5000";
-
     private MarimsApiClient() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(Config.SERVER_URL)
                 .addConverterFactory(GsonConverterFactory.create(GsonUtil.getGson()))
                 .build();
 

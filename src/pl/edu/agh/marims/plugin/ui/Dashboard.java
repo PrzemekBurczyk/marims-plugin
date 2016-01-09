@@ -1,23 +1,27 @@
 package pl.edu.agh.marims.plugin.ui;
 
+import com.google.gson.reflect.TypeToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 import net.dongliu.apk.parser.ApkParser;
 import net.dongliu.apk.parser.bean.ApkMeta;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import pl.edu.agh.marims.plugin.Config;
 import pl.edu.agh.marims.plugin.network.FileRequestBody;
 import pl.edu.agh.marims.plugin.network.MarimsApiClient;
 import pl.edu.agh.marims.plugin.network.MarimsService;
-import pl.edu.agh.marims.plugin.util.Version;
+import pl.edu.agh.marims.plugin.util.GsonUtil;
 import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
@@ -25,7 +29,8 @@ import retrofit.Retrofit;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.lang.reflect.Type;
+import java.net.URISyntaxException;
 import java.util.List;
 
 public class Dashboard implements ToolWindowFactory {
@@ -52,44 +57,17 @@ public class Dashboard implements ToolWindowFactory {
     private Long applicationVersionCode;
 
     private MarimsService marimsService = MarimsApiClient.getInstance().getMarimsService();
+    private Socket socket;
 
     public Dashboard() {
         initInterface();
         initListeners();
-        fetchData();
+        initConnection();
     }
 
     private void initInterface() {
         listModel = new DefaultListModel<>();
         filesList.setModel(listModel);
-    }
-
-    private VirtualFile getAaptFile() {
-        Sdk projectSdk = ProjectRootManager.getInstance(project).getProjectSdk();
-        if (projectSdk != null) {
-            VirtualFile sdkHomeDirectory = projectSdk.getHomeDirectory();
-            if (sdkHomeDirectory != null && sdkHomeDirectory.exists()) {
-                VirtualFile buildToolsDirectory = sdkHomeDirectory.findChild("build-tools");
-                if (buildToolsDirectory != null && buildToolsDirectory.exists()) {
-                    VirtualFile newestBuildToolsDirectory = Arrays.asList(buildToolsDirectory.getChildren())
-                            .stream()
-                            .filter(directory -> Version.isVersion(directory.getName()))
-                            .max((left, right) -> new Version(left.getName()).compareTo(new Version(right.getName())))
-                            .get();
-                    if (newestBuildToolsDirectory != null) {
-                        VirtualFile aaptFile = newestBuildToolsDirectory.findChild("aapt.exe");
-                        if (aaptFile != null && aaptFile.exists()) {
-                            return aaptFile;
-//                            Runtime.getRuntime().exec(Arrays.asList(new String[]{aaptFile.getCanonicalPath(), "dump", "badging", file.getCanonicalPath()})
-//                                    .stream()
-//                                    .collect(Collectors.joining(" ")));
-
-                        }
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     private void loadApplicationData(File file) throws IOException {
@@ -138,23 +116,70 @@ public class Dashboard implements ToolWindowFactory {
                 });
             });
 
-            RequestBody applicationNameBody = RequestBody.create(MediaType.parse("text/plain"), applicationName);
-            RequestBody applicationVersionBody = RequestBody.create(MediaType.parse("text/plain"), applicationVersion);
-            marimsService.postFile(applicationNameBody, applicationVersionBody, file).enqueue(new Callback<Void>() {
+            RequestBody applicationNameParam = RequestBody.create(MediaType.parse("text/plain"), applicationName);
+            RequestBody applicationVersionParam = RequestBody.create(MediaType.parse("text/plain"), applicationVersion);
+            RequestBody applicationVersionCodeParam = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(applicationVersionCode));
+            marimsService.postFile(applicationNameParam, applicationVersionParam, applicationVersionCodeParam, file).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Response<Void> response, Retrofit retrofit) {
-                    fetchData();
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showInfoMessage(project, "File upload successful", "File Upload");
+                    });
                 }
 
                 @Override
                 public void onFailure(Throwable throwable) {
-
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showErrorDialog(project, "File upload failed", "File Upload");
+                    });
                 }
             });
         });
     }
 
-    private void fetchData() {
+    private void initConnection() {
+        try {
+            socket = IO.socket(Config.SERVER_URL + Config.SOCKET_IO_ENDPOINT);
+            socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    System.out.println("Socket connected");
+                }
+            }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    System.out.println("Socket disconnected");
+                }
+            }).on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    System.out.println("Socket connect error");
+                }
+            }).on(Socket.EVENT_CONNECT_TIMEOUT, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    System.out.println("Socket connect timeout");
+                }
+            }).on("files", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONArray filesJson = (JSONArray) args[0];
+                    Type listType = new TypeToken<List<String>>() {
+                    }.getType();
+                    List<String> files = GsonUtil.getGson().fromJson(filesJson.toString(), listType);
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        listModel.clear();
+                        files.forEach((file) -> listModel.addElement(file));
+                    });
+                }
+            });
+            socket.connect();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void fetchFilesData() {
         marimsService.getFiles().enqueue(new Callback<List<String>>() {
             @Override
             public void onResponse(Response<List<String>> response, Retrofit retrofit) {
