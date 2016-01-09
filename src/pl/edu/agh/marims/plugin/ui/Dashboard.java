@@ -68,6 +68,7 @@ public class Dashboard implements ToolWindowFactory {
     private Socket socket;
 
     private final JPopupMenu filesPopupMenu = new JPopupMenu();
+    private final JPopupMenu sessionsPopupMenu = new JPopupMenu();
 
     private final Type stringListType = new TypeToken<List<String>>() {
     }.getType();
@@ -125,6 +126,17 @@ public class Dashboard implements ToolWindowFactory {
 
         filesPopupMenu.add(createSessionItem);
         filesPopupMenu.add(removeFileItem);
+
+        JMenuItem connectToSessionItem = new JMenuItem("Connect to session");
+
+        connectToSessionItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                
+            }
+        });
+
+        sessionsPopupMenu.add(connectToSessionItem);
     }
 
     private void loadApplicationData(File file) throws IOException {
@@ -207,6 +219,19 @@ public class Dashboard implements ToolWindowFactory {
         });
 
         filesList.addListSelectionListener(e -> refreshSessionsList());
+
+        sessionsList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mouseClicked(e);
+                JList list = (JList) e.getSource();
+                int clickedIndex = list.locationToIndex(e.getPoint());
+                if (SwingUtilities.isRightMouseButton(e) && !list.isSelectionEmpty()) {
+                    list.setSelectedIndex(clickedIndex);
+                    sessionsPopupMenu.show(list, e.getX(), e.getY());
+                }
+            }
+        });
     }
 
     private void initConnection() {
