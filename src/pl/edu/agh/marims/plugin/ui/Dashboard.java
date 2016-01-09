@@ -205,6 +205,8 @@ public class Dashboard implements ToolWindowFactory {
                 }
             }
         });
+
+        filesList.addListSelectionListener(e -> refreshSessionsList());
     }
 
     private void initConnection() {
@@ -244,7 +246,6 @@ public class Dashboard implements ToolWindowFactory {
                 @Override
                 public void call(Object... args) {
                     JSONArray sessionsJson = (JSONArray) args[0];
-                    System.out.println(sessionsJson.toString());
                     sessions = GsonUtil.getGson().fromJson(sessionsJson.toString(), sessionListType);
                     ApplicationManager.getApplication().invokeLater(() -> {
                         refreshSessionsList();
@@ -299,7 +300,10 @@ public class Dashboard implements ToolWindowFactory {
 
     private void refreshSessionsList() {
         sessionsListModel.clear();
-        sessions.forEach((session) -> sessionsListModel.addElement(session));
+        String selectedFile = filesList.getSelectedValue();
+        sessions.stream()
+                .filter((session) -> session.getFile().equals(selectedFile))
+                .forEach((session) -> sessionsListModel.addElement(session));
     }
 
 }
