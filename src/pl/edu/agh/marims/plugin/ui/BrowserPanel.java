@@ -17,6 +17,7 @@ public class BrowserPanel extends JPanel {
     private WebEngine webEngine;
 
     public BrowserPanel() {
+        jfxPanel = new JFXPanel();
         Platform.setImplicitExit(false);
         this.setLayout(new BorderLayout());
         Platform.runLater(this::initWebView);
@@ -27,7 +28,6 @@ public class BrowserPanel extends JPanel {
     }
 
     private JFXPanel createWebView() {
-        jfxPanel = new JFXPanel();
         jfxPanel.setScene(createScene());
         return jfxPanel;
     }
