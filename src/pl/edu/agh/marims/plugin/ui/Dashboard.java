@@ -21,12 +21,17 @@ import pl.edu.agh.marims.plugin.Config;
 import pl.edu.agh.marims.plugin.network.FileRequestBody;
 import pl.edu.agh.marims.plugin.network.MarimsApiClient;
 import pl.edu.agh.marims.plugin.network.MarimsService;
+import pl.edu.agh.marims.plugin.network.models.Session;
 import pl.edu.agh.marims.plugin.util.GsonUtil;
 import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -34,7 +39,10 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 public class Dashboard implements ToolWindowFactory {
-    private DefaultListModel<String> listModel;
+    private DefaultListModel<String> filesListModel;
+    private DefaultListModel<Session> sessionsListModel;
+
+    private List<Session> sessions;
 
     private JList<String> filesList;
     private JPanel contentPanel;
@@ -46,7 +54,7 @@ public class Dashboard implements ToolWindowFactory {
     private JLabel applicationNameTextField;
     private JLabel applicationVersionTextField;
     private JLabel applicationVersionCodeTextField;
-    private JList sessionsList;
+    private JList<Session> sessionsList;
 
     private Project project;
     private ToolWindow toolWindow;
@@ -59,6 +67,14 @@ public class Dashboard implements ToolWindowFactory {
     private MarimsService marimsService = MarimsApiClient.getInstance().getMarimsService();
     private Socket socket;
 
+    private final JPopupMenu filesPopupMenu = new JPopupMenu();
+
+    private final Type stringListType = new TypeToken<List<String>>() {
+    }.getType();
+
+    private final Type sessionListType = new TypeToken<List<Session>>() {
+    }.getType();
+
     public Dashboard() {
         initInterface();
         initListeners();
@@ -66,8 +82,49 @@ public class Dashboard implements ToolWindowFactory {
     }
 
     private void initInterface() {
-        listModel = new DefaultListModel<>();
-        filesList.setModel(listModel);
+        filesListModel = new DefaultListModel<>();
+        filesList.setModel(filesListModel);
+
+        sessionsListModel = new DefaultListModel<>();
+        sessionsList.setModel(sessionsListModel);
+
+        JMenuItem createSessionItem = new JMenuItem("Create session");
+        JMenuItem removeFileItem = new JMenuItem("Remove file");
+
+        createSessionItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                socket.emit("createSession", filesList.getSelectedValue());
+            }
+        });
+
+        removeFileItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                marimsService.deleteFile(filesList.getSelectedValue()).enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Response<Void> response, Retrofit retrofit) {
+                        ApplicationManager.getApplication().invokeLater(() -> {
+                            if (response.code() >= 200 && response.code() < 300) {
+                                Messages.showInfoMessage(project, "File removal successful", "File Removal");
+                            } else {
+                                Messages.showErrorDialog(project, "File removal failed", "File Removal");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        ApplicationManager.getApplication().invokeLater(() -> {
+                            Messages.showErrorDialog(project, "File removal failed", "File Removal");
+                        });
+                    }
+                });
+            }
+        });
+
+        filesPopupMenu.add(createSessionItem);
+        filesPopupMenu.add(removeFileItem);
     }
 
     private void loadApplicationData(File file) throws IOException {
@@ -135,6 +192,19 @@ public class Dashboard implements ToolWindowFactory {
                 }
             });
         });
+
+        filesList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mouseClicked(e);
+                JList list = (JList) e.getSource();
+                int clickedIndex = list.locationToIndex(e.getPoint());
+                if (SwingUtilities.isRightMouseButton(e) && !list.isSelectionEmpty()) {
+                    list.setSelectedIndex(clickedIndex);
+                    filesPopupMenu.show(list, e.getX(), e.getY());
+                }
+            }
+        });
     }
 
     private void initConnection() {
@@ -164,12 +234,34 @@ public class Dashboard implements ToolWindowFactory {
                 @Override
                 public void call(Object... args) {
                     JSONArray filesJson = (JSONArray) args[0];
-                    Type listType = new TypeToken<List<String>>() {
-                    }.getType();
-                    List<String> files = GsonUtil.getGson().fromJson(filesJson.toString(), listType);
+                    List<String> files = GsonUtil.getGson().fromJson(filesJson.toString(), stringListType);
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        listModel.clear();
-                        files.forEach((file) -> listModel.addElement(file));
+                        filesListModel.clear();
+                        files.forEach((file) -> filesListModel.addElement(file));
+                    });
+                }
+            }).on("sessions", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONArray sessionsJson = (JSONArray) args[0];
+                    System.out.println(sessionsJson.toString());
+                    sessions = GsonUtil.getGson().fromJson(sessionsJson.toString(), sessionListType);
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        refreshSessionsList();
+                    });
+                }
+            }).on("sessionCreationFailed", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showErrorDialog(project, "Session creation failed", "Session Creation");
+                    });
+                }
+            }).on("sessionRemovalFailed", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showErrorDialog(project, "Session removal failed", "Session Removal");
                     });
                 }
             });
@@ -184,8 +276,8 @@ public class Dashboard implements ToolWindowFactory {
             @Override
             public void onResponse(Response<List<String>> response, Retrofit retrofit) {
                 ApplicationManager.getApplication().invokeLater(() -> {
-                    listModel.clear();
-                    response.body().forEach((file) -> listModel.addElement(file));
+                    filesListModel.clear();
+                    response.body().forEach((file) -> filesListModel.addElement(file));
                 });
             }
 
@@ -203,6 +295,11 @@ public class Dashboard implements ToolWindowFactory {
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(contentPanel, "", false);
         toolWindow.getContentManager().addContent(content);
+    }
+
+    private void refreshSessionsList() {
+        sessionsListModel.clear();
+        sessions.forEach((session) -> sessionsListModel.addElement(session));
     }
 
 }
