@@ -28,6 +28,7 @@ import retrofit.Response;
 import retrofit.Retrofit;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -57,6 +58,9 @@ public class Dashboard implements ToolWindowFactory {
     private JLabel applicationVersionCodeTextField;
     private JList<Session> sessionsList;
 
+    private JPanel dashboardPanel;
+    private JPanel browserPanel;
+
     private Project project;
     private ToolWindow toolWindow;
 
@@ -84,6 +88,8 @@ public class Dashboard implements ToolWindowFactory {
     }
 
     private void initInterface() {
+        browserPanel = new Browser();
+
         filesListModel = new DefaultListModel<>();
         filesList.setModel(filesListModel);
 
@@ -134,6 +140,9 @@ public class Dashboard implements ToolWindowFactory {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String sessionId = sessionsList.getSelectedValue().getId();
+                contentPanel.removeAll();
+                contentPanel.add(browserPanel, BorderLayout.CENTER);
+                contentPanel.revalidate();
             }
         });
 
