@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 public class Dashboard implements ToolWindowFactory {
+    private static final String DEFAULT_FILE = "Others";
     private DefaultListModel<String> filesListModel;
     private DefaultListModel<Session> sessionsListModel;
 
@@ -132,7 +133,7 @@ public class Dashboard implements ToolWindowFactory {
         connectToSessionItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                
+
             }
         });
 
@@ -213,7 +214,9 @@ public class Dashboard implements ToolWindowFactory {
                 int clickedIndex = list.locationToIndex(e.getPoint());
                 if (SwingUtilities.isRightMouseButton(e) && !list.isSelectionEmpty()) {
                     list.setSelectedIndex(clickedIndex);
-                    filesPopupMenu.show(list, e.getX(), e.getY());
+                    if (!list.getSelectedValue().equals(DEFAULT_FILE)) { // you cannot remove "Others" item
+                        filesPopupMenu.show(list, e.getX(), e.getY());
+                    }
                 }
             }
         });
@@ -263,8 +266,7 @@ public class Dashboard implements ToolWindowFactory {
                     JSONArray filesJson = (JSONArray) args[0];
                     List<String> files = GsonUtil.getGson().fromJson(filesJson.toString(), stringListType);
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        filesListModel.clear();
-                        files.forEach((file) -> filesListModel.addElement(file));
+                        refreshFilesList(files);
                     });
                 }
             }).on("sessions", new Emitter.Listener() {
@@ -302,8 +304,7 @@ public class Dashboard implements ToolWindowFactory {
             @Override
             public void onResponse(Response<List<String>> response, Retrofit retrofit) {
                 ApplicationManager.getApplication().invokeLater(() -> {
-                    filesListModel.clear();
-                    response.body().forEach((file) -> filesListModel.addElement(file));
+                    refreshFilesList(response.body());
                 });
             }
 
@@ -323,11 +324,17 @@ public class Dashboard implements ToolWindowFactory {
         toolWindow.getContentManager().addContent(content);
     }
 
+    private void refreshFilesList(List<String> files) {
+        filesListModel.clear();
+        files.forEach((file) -> filesListModel.addElement(file));
+        filesListModel.addElement(DEFAULT_FILE);
+    }
+
     private void refreshSessionsList() {
         sessionsListModel.clear();
         String selectedFile = filesList.getSelectedValue();
         sessions.stream()
-                .filter((session) -> session.getFile().equals(selectedFile))
+                .filter((session) -> selectedFile.equals(DEFAULT_FILE) ? session.getFile() == null : selectedFile.equals(session.getFile()))
                 .forEach((session) -> sessionsListModel.addElement(session));
     }
 
