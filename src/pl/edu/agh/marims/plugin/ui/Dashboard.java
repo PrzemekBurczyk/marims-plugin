@@ -59,7 +59,8 @@ public class Dashboard implements ToolWindowFactory {
     private JList<Session> sessionsList;
 
     private JPanel dashboardPanel;
-    private JPanel browserPanel;
+    private JButton backButton;
+    private BrowserPanel browserPanel;
 
     private Project project;
     private ToolWindow toolWindow;
@@ -88,7 +89,7 @@ public class Dashboard implements ToolWindowFactory {
     }
 
     private void initInterface() {
-        browserPanel = new Browser();
+        browserPanel = new BrowserPanel();
 
         filesListModel = new DefaultListModel<>();
         filesList.setModel(filesListModel);
@@ -140,9 +141,11 @@ public class Dashboard implements ToolWindowFactory {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String sessionId = sessionsList.getSelectedValue().getId();
-                contentPanel.removeAll();
+                browserPanel.loadSession(sessionId);
+                contentPanel.remove(dashboardPanel);
                 contentPanel.add(browserPanel, BorderLayout.CENTER);
                 contentPanel.revalidate();
+                backButton.setEnabled(true);
             }
         });
 
@@ -242,6 +245,17 @@ public class Dashboard implements ToolWindowFactory {
                     list.setSelectedIndex(clickedIndex);
                     sessionsPopupMenu.show(list, e.getX(), e.getY());
                 }
+            }
+        });
+
+        backButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                browserPanel.closeSession();
+                contentPanel.remove(browserPanel);
+                contentPanel.add(dashboardPanel, BorderLayout.CENTER);
+                contentPanel.revalidate();
+                backButton.setEnabled(false);
             }
         });
     }

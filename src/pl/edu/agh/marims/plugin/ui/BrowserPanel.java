@@ -6,13 +6,19 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import pl.edu.agh.marims.plugin.Config;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class Browser extends JPanel {
+public class BrowserPanel extends JPanel {
+    private JFXPanel jfxPanel;
+    private WebView webView;
+    private WebEngine webEngine;
 
-    public Browser() {
+    public BrowserPanel() {
+        Platform.setImplicitExit(false);
+        this.setLayout(new BorderLayout());
         Platform.runLater(this::initWebView);
     }
 
@@ -21,7 +27,7 @@ public class Browser extends JPanel {
     }
 
     private JFXPanel createWebView() {
-        JFXPanel jfxPanel = new JFXPanel();
+        jfxPanel = new JFXPanel();
         jfxPanel.setScene(createScene());
         return jfxPanel;
     }
@@ -29,10 +35,18 @@ public class Browser extends JPanel {
     private Scene createScene() {
         StackPane root = new StackPane();
         Scene scene = new Scene(root);
-        WebView webView = new WebView();
-        WebEngine webEngine = webView.getEngine();
-        webEngine.load("http://marims.pl");
+        webView = new WebView();
+        webEngine = webView.getEngine();
         root.getChildren().add(webView);
         return scene;
     }
+
+    public void loadSession(String sessionId) {
+        Platform.runLater(() -> webEngine.load(Config.SERVER_URL + sessionId));
+    }
+
+    public void closeSession() {
+        Platform.runLater(() -> webEngine.load(null));
+    }
+
 }

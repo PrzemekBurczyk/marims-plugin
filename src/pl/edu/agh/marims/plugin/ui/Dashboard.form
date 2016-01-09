@@ -269,6 +269,30 @@
           </grid>
         </children>
       </grid>
+      <grid id="c5a51" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints border-constraint="North"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="436dd" class="javax.swing.JButton" binding="backButton">
+            <constraints border-constraint="West"/>
+            <properties>
+              <enabled value="false"/>
+              <hideActionText value="false"/>
+              <horizontalAlignment value="0"/>
+              <text value="Back"/>
+            </properties>
+          </component>
+          <component id="8d97d" class="javax.swing.JLabel">
+            <constraints border-constraint="Center"/>
+            <properties>
+              <font style="1"/>
+              <horizontalAlignment value="0"/>
+              <text value="MARIMS"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
     </children>
   </grid>
 </form>
