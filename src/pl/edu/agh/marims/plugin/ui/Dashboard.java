@@ -21,6 +21,7 @@ import pl.edu.agh.marims.plugin.Config;
 import pl.edu.agh.marims.plugin.network.FileRequestBody;
 import pl.edu.agh.marims.plugin.network.MarimsApiClient;
 import pl.edu.agh.marims.plugin.network.MarimsService;
+import pl.edu.agh.marims.plugin.network.models.ApplicationFile;
 import pl.edu.agh.marims.plugin.network.models.Session;
 import pl.edu.agh.marims.plugin.util.GsonUtil;
 import retrofit.Callback;
@@ -38,15 +39,16 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Dashboard implements ToolWindowFactory {
-    private static final String DEFAULT_FILE = "Others";
-    private DefaultListModel<String> filesListModel;
+    private static final ApplicationFile DEFAULT_FILE = new ApplicationFile("[]Others");
+    private DefaultListModel<ApplicationFile> filesListModel;
     private DefaultListModel<Session> sessionsListModel;
 
     private List<Session> sessions;
 
-    private JList<String> filesList;
+    private JList<ApplicationFile> filesList;
     private JPanel contentPanel;
     private JLabel title;
     private JButton chooseFileButton;
@@ -66,9 +68,11 @@ public class Dashboard implements ToolWindowFactory {
     private ToolWindow toolWindow;
 
     private File selectedFile;
+
     private String applicationName;
     private String applicationVersion;
     private Long applicationVersionCode;
+    private String applicationPackage;
 
     private MarimsService marimsService = MarimsApiClient.getInstance().getMarimsService();
     private Socket socket;
@@ -103,14 +107,14 @@ public class Dashboard implements ToolWindowFactory {
         createSessionItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                socket.emit("createSession", filesList.getSelectedValue());
+                socket.emit("createSession", filesList.getSelectedValue().toApplicationFileString());
             }
         });
 
         removeFileItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                marimsService.deleteFile(filesList.getSelectedValue()).enqueue(new Callback<Void>() {
+                marimsService.deleteFile(filesList.getSelectedValue().toApplicationFileString()).enqueue(new Callback<Void>() {
                     @Override
                     public void onResponse(Response<Void> response, Retrofit retrofit) {
                         ApplicationManager.getApplication().invokeLater(() -> {
@@ -158,6 +162,7 @@ public class Dashboard implements ToolWindowFactory {
         applicationName = apkMeta.getLabel();
         applicationVersion = apkMeta.getVersionName();
         applicationVersionCode = apkMeta.getVersionCode();
+        applicationPackage = apkMeta.getPackageName();
 
         applicationNameTextField.setText(applicationName);
         applicationVersionTextField.setText(applicationVersion);
@@ -202,7 +207,8 @@ public class Dashboard implements ToolWindowFactory {
             RequestBody applicationNameParam = RequestBody.create(MediaType.parse("text/plain"), applicationName);
             RequestBody applicationVersionParam = RequestBody.create(MediaType.parse("text/plain"), applicationVersion);
             RequestBody applicationVersionCodeParam = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(applicationVersionCode));
-            marimsService.postFile(applicationNameParam, applicationVersionParam, applicationVersionCodeParam, file).enqueue(new Callback<Void>() {
+            RequestBody applicationPackageParam = RequestBody.create(MediaType.parse("text/plain"), applicationPackage);
+            marimsService.postFile(applicationPackageParam, applicationNameParam, applicationVersionParam, applicationVersionCodeParam, file).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Response<Void> response, Retrofit retrofit) {
                     ApplicationManager.getApplication().invokeLater(() -> {
@@ -288,7 +294,10 @@ public class Dashboard implements ToolWindowFactory {
                 @Override
                 public void call(Object... args) {
                     JSONArray filesJson = (JSONArray) args[0];
-                    List<String> files = GsonUtil.getGson().fromJson(filesJson.toString(), stringListType);
+                    List<String> filesStrings = GsonUtil.getGson().fromJson(filesJson.toString(), stringListType);
+                    List<ApplicationFile> files = filesStrings.stream()
+                            .map(ApplicationFile::new)
+                            .collect(Collectors.toList());
                     ApplicationManager.getApplication().invokeLater(() -> {
                         refreshFilesList(files);
                     });
@@ -323,23 +332,7 @@ public class Dashboard implements ToolWindowFactory {
         }
     }
 
-    private void fetchFilesData() {
-        marimsService.getFiles().enqueue(new Callback<List<String>>() {
-            @Override
-            public void onResponse(Response<List<String>> response, Retrofit retrofit) {
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    refreshFilesList(response.body());
-                });
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-
-            }
-        });
-    }
-
-    private void refreshFilesList(List<String> files) {
+    private void refreshFilesList(List<ApplicationFile> files) {
         filesListModel.clear();
         files.forEach((file) -> filesListModel.addElement(file));
         filesListModel.addElement(DEFAULT_FILE);
@@ -347,10 +340,10 @@ public class Dashboard implements ToolWindowFactory {
 
     private void refreshSessionsList() {
         sessionsListModel.clear();
-        String selectedFile = filesList.getSelectedValue();
+        ApplicationFile selectedFile = filesList.getSelectedValue();
         if (selectedFile != null) {
             sessions.stream()
-                    .filter((session) -> selectedFile.equals(DEFAULT_FILE) ? session.getFile() == null : selectedFile.equals(session.getFile()))
+                    .filter((session) -> selectedFile.equals(DEFAULT_FILE) ? session.getFile() == null : selectedFile.toApplicationFileString().equals(session.getFile()))
                     .forEach((session) -> sessionsListModel.addElement(session));
         }
     }

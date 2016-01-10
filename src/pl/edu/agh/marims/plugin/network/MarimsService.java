@@ -14,7 +14,7 @@ public interface MarimsService {
 
     @Multipart
     @POST("/files")
-    Call<Void> postFile(@Part("applicationName") RequestBody applicationName, @Part("applicationVersion") RequestBody applicationVersion, @Part("applicationVersionCode") RequestBody applicationVersionCode, @Part("file\"; filename=\"app.apk\"") RequestBody file);
+    Call<Void> postFile(@Part("applicationPackage") RequestBody applicationPackage, @Part("applicationName") RequestBody applicationName, @Part("applicationVersion") RequestBody applicationVersion, @Part("applicationVersionCode") RequestBody applicationVersionCode, @Part("file\"; filename=\"app.apk\"") RequestBody file);
 
     @DELETE("/files/{filename}")
     Call<Void> deleteFile(@Path("filename") String filename);
