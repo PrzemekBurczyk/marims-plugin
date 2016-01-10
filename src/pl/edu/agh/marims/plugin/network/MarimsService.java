@@ -22,5 +22,4 @@ public interface MarimsService {
     @GET("/sessions")
     Call<List<Session>> getSessions();
 
-
 }

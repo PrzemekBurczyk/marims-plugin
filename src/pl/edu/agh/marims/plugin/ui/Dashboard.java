@@ -179,6 +179,7 @@ public class Dashboard implements ToolWindowFactory {
             if (selectedOption == JFileChooser.APPROVE_OPTION) {
                 selectedFile = fileChooser.getSelectedFile();
                 sendFileButton.setEnabled(true);
+                sendFileProgressBar.setValue(0);
                 try {
                     chooseFileLabel.setText(selectedFile.getCanonicalPath());
                     loadApplicationData(selectedFile);
