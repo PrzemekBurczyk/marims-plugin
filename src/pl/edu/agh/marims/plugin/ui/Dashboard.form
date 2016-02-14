@@ -298,10 +298,10 @@
                   <text value="MARIMS"/>
                 </properties>
               </component>
-              <component id="c7909" class="javax.swing.JButton" binding="logoutButton">
+              <component id="c7909" class="javax.swing.JButton" binding="logOutButton">
                 <constraints border-constraint="East"/>
                 <properties>
-                  <text value="Logout"/>
+                  <text value="Log out"/>
                 </properties>
               </component>
             </children>
@@ -326,7 +326,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="386bd" class="javax.swing.JTextField" binding="textField1" default-binding="true">
+              <component id="386bd" class="javax.swing.JTextField" binding="logInEmail">
                 <constraints>
                   <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="150" height="-1"/>
@@ -334,7 +334,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="722c6" class="javax.swing.JPasswordField" binding="passwordField1" default-binding="true">
+              <component id="722c6" class="javax.swing.JPasswordField" binding="logInPassword">
                 <constraints>
                   <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="150" height="-1"/>
@@ -389,7 +389,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="a56db" class="javax.swing.JTextField" binding="textField2" default-binding="true">
+              <component id="a56db" class="javax.swing.JTextField" binding="registerEmail">
                 <constraints>
                   <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="150" height="-1"/>
@@ -397,7 +397,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="ee7aa" class="javax.swing.JPasswordField" binding="passwordField2" default-binding="true">
+              <component id="ee7aa" class="javax.swing.JPasswordField" binding="registerPassword">
                 <constraints>
                   <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="150" height="-1"/>

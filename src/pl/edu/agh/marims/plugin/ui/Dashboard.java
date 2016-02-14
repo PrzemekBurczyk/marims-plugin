@@ -24,7 +24,9 @@ import pl.edu.agh.marims.plugin.network.FileRequestBody;
 import pl.edu.agh.marims.plugin.network.MarimsApiClient;
 import pl.edu.agh.marims.plugin.network.MarimsService;
 import pl.edu.agh.marims.plugin.network.models.ApplicationFile;
+import pl.edu.agh.marims.plugin.network.models.LoggedUser;
 import pl.edu.agh.marims.plugin.network.models.Session;
+import pl.edu.agh.marims.plugin.network.models.UserRequest;
 import pl.edu.agh.marims.plugin.util.GsonUtil;
 import retrofit.Callback;
 import retrofit.Response;
@@ -68,12 +70,12 @@ public class Dashboard implements ToolWindowFactory {
 
     private JPanel dashboardPanel;
     private JButton backButton;
-    private JButton logoutButton;
+    private JButton logOutButton;
     private JPanel loginPanel;
-    private JTextField textField1;
-    private JPasswordField passwordField1;
-    private JTextField textField2;
-    private JPasswordField passwordField2;
+    private JTextField logInEmail;
+    private JPasswordField logInPassword;
+    private JTextField registerEmail;
+    private JPasswordField registerPassword;
     private JButton logInButton;
     private JButton registerButton;
     private BrowserPanel browserPanel;
@@ -88,7 +90,8 @@ public class Dashboard implements ToolWindowFactory {
     private Long applicationVersionCode;
     private String applicationPackage;
 
-    private MarimsService marimsService = MarimsApiClient.getInstance().getMarimsService();
+    private MarimsApiClient marimsApiClient = MarimsApiClient.getInstance();
+    private MarimsService marimsService = marimsApiClient.getMarimsService();
     private Socket socket;
 
     private final JPopupMenu filesPopupMenu = new JPopupMenu();
@@ -103,7 +106,6 @@ public class Dashboard implements ToolWindowFactory {
     public Dashboard() {
         initInterface();
         initListeners();
-        initConnection();
     }
 
     private void initInterface() {
@@ -190,6 +192,33 @@ public class Dashboard implements ToolWindowFactory {
     }
 
     private void initListeners() {
+        logInButton.addActionListener(e -> {
+            UserRequest user = new UserRequest();
+            user.setEmail(logInEmail.getText());
+            user.setPassword(new String(logInPassword.getPassword()));
+            marimsService.logIn(user).enqueue(new Callback<LoggedUser>() {
+                @Override
+                public void onResponse(Response<LoggedUser> response, Retrofit retrofit) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        if (response.code() >= 200 && response.code() < 300) {
+                            marimsApiClient.setLoggedUser(response.body());
+                            ((CardLayout) cardPanel.getLayout()).show(cardPanel, "Dashboard");
+                            initConnection();
+                        } else {
+                            Messages.showErrorDialog(project, response.message(), "Log in");
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showErrorDialog(project, "Log in failed", "Log in");
+                    });
+                }
+            });
+        });
+
         chooseFileButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser(project.getBasePath());
 //            FileNameExtensionFilter filter = new FileNameExtensionFilter("Android APKs", "apk");
@@ -294,7 +323,10 @@ public class Dashboard implements ToolWindowFactory {
                         public void call(Object... args) {
                             @SuppressWarnings("unchecked")
                             Map<String, List<String>> headers = (Map<String, List<String>>) args[0];
-                            headers.put("Authorization", Collections.singletonList("Bearer 1c0d83cb-8257-447c-88c1-e1fccba4ce9f"));
+                            LoggedUser loggedUser = marimsApiClient.getLoggedUser();
+                            if (loggedUser != null && loggedUser.getToken() != null) {
+                                headers.put("Authorization", Collections.singletonList("Bearer " + loggedUser.getToken()));
+                            }
                         }
                     });
                 }
