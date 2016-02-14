@@ -66,6 +66,7 @@ public class Dashboard implements ToolWindowFactory {
 
     private JPanel dashboardPanel;
     private JButton backButton;
+    private JButton logoutButton;
     private BrowserPanel browserPanel;
 
     private Project project;

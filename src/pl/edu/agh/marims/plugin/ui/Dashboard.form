@@ -291,6 +291,12 @@
               <text value="MARIMS"/>
             </properties>
           </component>
+          <component id="c7909" class="javax.swing.JButton" binding="logoutButton">
+            <constraints border-constraint="East"/>
+            <properties>
+              <text value="Logout"/>
+            </properties>
+          </component>
         </children>
       </grid>
     </children>
