@@ -11,8 +11,10 @@ import com.intellij.ui.content.ContentFactory;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 import io.socket.client.IO;
+import io.socket.client.Manager;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import io.socket.engineio.client.Transport;
 import net.dongliu.apk.parser.ApkParser;
 import net.dongliu.apk.parser.bean.ApkMeta;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +40,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Dashboard implements ToolWindowFactory {
@@ -270,6 +274,21 @@ public class Dashboard implements ToolWindowFactory {
     private void initConnection() {
         try {
             socket = IO.socket(Config.SERVER_URL + Config.SOCKET_IO_ENDPOINT);
+            socket.io().on(Manager.EVENT_TRANSPORT, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    Transport transport = (Transport) args[0];
+
+                    transport.on(Transport.EVENT_REQUEST_HEADERS, new Emitter.Listener() {
+                        @Override
+                        public void call(Object... args) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, List<String>> headers = (Map<String, List<String>>) args[0];
+                            headers.put("Authorization", Collections.singletonList("Bearer 1c0d83cb-8257-447c-88c1-e1fccba4ce9f"));
+                        }
+                    });
+                }
+            });
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
