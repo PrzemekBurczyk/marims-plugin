@@ -205,7 +205,11 @@ public class Dashboard implements ToolWindowFactory {
                             ((CardLayout) cardPanel.getLayout()).show(cardPanel, "Dashboard");
                             initConnection();
                         } else {
-                            Messages.showErrorDialog(project, response.message(), "Log in");
+                            try {
+                                Messages.showErrorDialog(project, response.errorBody().string(), "Log in");
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
                         }
                     });
                 }
@@ -229,7 +233,11 @@ public class Dashboard implements ToolWindowFactory {
                             ((CardLayout) cardPanel.getLayout()).show(cardPanel, "LogIn");
                             closeConnection();
                         } else {
-                            Messages.showErrorDialog(project, response.message(), "Log out");
+                            try {
+                                Messages.showErrorDialog(project, response.errorBody().string(), "Log out");
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
                         }
                     });
                 }
@@ -238,6 +246,37 @@ public class Dashboard implements ToolWindowFactory {
                 public void onFailure(Throwable throwable) {
                     ApplicationManager.getApplication().invokeLater(() -> {
                         Messages.showErrorDialog(project, "Log out failed", "Log out");
+                    });
+                }
+            });
+        });
+
+        registerButton.addActionListener(e -> {
+            UserRequest user = new UserRequest();
+            user.setEmail(registerEmail.getText());
+            user.setPassword(new String(registerPassword.getPassword()));
+            marimsService.register(user).enqueue(new Callback<LoggedUser>() {
+                @Override
+                public void onResponse(Response<LoggedUser> response, Retrofit retrofit) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        if (response.code() >= 200 && response.code() < 300) {
+                            marimsApiClient.setLoggedUser(response.body());
+                            ((CardLayout) cardPanel.getLayout()).show(cardPanel, "Dashboard");
+                            initConnection();
+                        } else {
+                            try {
+                                Messages.showErrorDialog(project, response.errorBody().string(), "Register");
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showErrorDialog(project, "Registering failed", "Register");
                     });
                 }
             });
