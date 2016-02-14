@@ -219,6 +219,30 @@ public class Dashboard implements ToolWindowFactory {
             });
         });
 
+        logOutButton.addActionListener(e -> {
+            marimsService.logOut().enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Response<Void> response, Retrofit retrofit) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        if (response.code() >= 200 && response.code() < 300) {
+                            marimsApiClient.setLoggedUser(null);
+                            ((CardLayout) cardPanel.getLayout()).show(cardPanel, "LogIn");
+                            closeConnection();
+                        } else {
+                            Messages.showErrorDialog(project, response.message(), "Log out");
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showErrorDialog(project, "Log out failed", "Log out");
+                    });
+                }
+            });
+        });
+
         chooseFileButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser(project.getBasePath());
 //            FileNameExtensionFilter filter = new FileNameExtensionFilter("Android APKs", "apk");
@@ -391,6 +415,10 @@ public class Dashboard implements ToolWindowFactory {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+    }
+
+    private void closeConnection() {
+        socket.disconnect();
     }
 
     private void refreshFilesList(List<ApplicationFile> files) {
