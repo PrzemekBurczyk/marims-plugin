@@ -52,6 +52,8 @@ public class Dashboard implements ToolWindowFactory {
 
     private List<Session> sessions;
 
+    private JPanel cardPanel;
+
     private JList<ApplicationFile> filesList;
     private JPanel contentPanel;
     private JLabel title;
@@ -67,6 +69,13 @@ public class Dashboard implements ToolWindowFactory {
     private JPanel dashboardPanel;
     private JButton backButton;
     private JButton logoutButton;
+    private JPanel loginPanel;
+    private JTextField textField1;
+    private JPasswordField passwordField1;
+    private JTextField textField2;
+    private JPasswordField passwordField2;
+    private JButton logInButton;
+    private JButton registerButton;
     private BrowserPanel browserPanel;
 
     private Project project;
@@ -373,7 +382,7 @@ public class Dashboard implements ToolWindowFactory {
         this.project = project;
         this.toolWindow = toolWindow;
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-        Content content = contentFactory.createContent(contentPanel, "", false);
+        Content content = contentFactory.createContent(cardPanel, "", false);
         toolWindow.getContentManager().addContent(content);
     }
 }
