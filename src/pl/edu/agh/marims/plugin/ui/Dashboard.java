@@ -3,6 +3,7 @@ package pl.edu.agh.marims.plugin.ui;
 import com.google.gson.reflect.TypeToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -45,12 +46,17 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Dashboard implements ToolWindowFactory {
     private static final ApplicationFile DEFAULT_FILE = new ApplicationFile("[]Others");
     private DefaultListModel<ApplicationFile> filesListModel;
     private DefaultListModel<Session> sessionsListModel;
+
+    private static final String EMAIL_PATTERN =
+            "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+                    + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 
     private List<Session> sessions;
 
@@ -119,6 +125,8 @@ public class Dashboard implements ToolWindowFactory {
 
         JMenuItem createSessionItem = new JMenuItem("Create session");
         JMenuItem removeFileItem = new JMenuItem("Remove file");
+        JMenuItem addMemberItem = new JMenuItem("Add member");
+        JMenuItem removeMemberItem = new JMenuItem("Remove member");
 
         createSessionItem.addActionListener(new ActionListener() {
             @Override
@@ -152,8 +160,38 @@ public class Dashboard implements ToolWindowFactory {
             }
         });
 
+        InputValidator emailValidator = new InputValidator() {
+            @Override
+            public boolean checkInput(String inputString) {
+                return Pattern.matches(EMAIL_PATTERN, inputString);
+            }
+
+            @Override
+            public boolean canClose(String inputString) {
+                return Pattern.matches(EMAIL_PATTERN, inputString);
+            }
+        };
+
+        addMemberItem.addActionListener(e -> {
+            String email = Messages.showInputDialog(project, "Enter user email", "Add Member", null, null, null);
+
+            if (email != null && !email.equals("")) {
+
+            }
+        });
+
+        removeMemberItem.addActionListener(e -> {
+            String email = Messages.showInputDialog(project, "Enter user email", "Remove Member", null, null, null);
+
+            if (email != null && !email.equals("")) {
+
+            }
+        });
+
         filesPopupMenu.add(createSessionItem);
         filesPopupMenu.add(removeFileItem);
+        filesPopupMenu.add(addMemberItem);
+        filesPopupMenu.add(removeMemberItem);
 
         JMenuItem connectToSessionItem = new JMenuItem("Connect to session");
 
@@ -318,7 +356,11 @@ public class Dashboard implements ToolWindowFactory {
                 @Override
                 public void onResponse(Response<Void> response, Retrofit retrofit) {
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        Messages.showInfoMessage(project, "File upload successful", "File Upload");
+                        if (response.code() >= 200 && response.code() < 300) {
+                            Messages.showInfoMessage(project, "File upload successful", "File Upload");
+                        } else {
+                            Messages.showErrorDialog(project, "File upload failed", "File Upload");
+                        }
                     });
                 }
 
