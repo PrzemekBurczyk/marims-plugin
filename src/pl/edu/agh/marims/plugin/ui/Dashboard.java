@@ -24,10 +24,7 @@ import pl.edu.agh.marims.plugin.Config;
 import pl.edu.agh.marims.plugin.network.FileRequestBody;
 import pl.edu.agh.marims.plugin.network.MarimsApiClient;
 import pl.edu.agh.marims.plugin.network.MarimsService;
-import pl.edu.agh.marims.plugin.network.models.ApplicationFile;
-import pl.edu.agh.marims.plugin.network.models.LoggedUser;
-import pl.edu.agh.marims.plugin.network.models.Session;
-import pl.edu.agh.marims.plugin.network.models.UserRequest;
+import pl.edu.agh.marims.plugin.network.models.*;
 import pl.edu.agh.marims.plugin.util.GsonUtil;
 import retrofit.Callback;
 import retrofit.Response;
@@ -59,10 +56,10 @@ public class Dashboard implements ToolWindowFactory {
                     + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 
     private List<Session> sessions;
+    private List<User> users;
 
     private JPanel cardPanel;
 
-    private JList<ApplicationFile> filesList;
     private JPanel contentPanel;
     private JLabel title;
     private JButton chooseFileButton;
@@ -72,7 +69,10 @@ public class Dashboard implements ToolWindowFactory {
     private JLabel applicationNameTextField;
     private JLabel applicationVersionTextField;
     private JLabel applicationVersionCodeTextField;
+    private JList<ApplicationFile> filesList;
     private JList<Session> sessionsList;
+    private JList<User> allUsersList;
+    private JList<User> fileUsersList;
 
     private JPanel dashboardPanel;
     private JButton backButton;
@@ -107,6 +107,9 @@ public class Dashboard implements ToolWindowFactory {
     }.getType();
 
     private final Type sessionListType = new TypeToken<List<Session>>() {
+    }.getType();
+
+    private final Type userListType = new TypeToken<List<User>>() {
     }.getType();
 
     public Dashboard() {
@@ -174,17 +177,19 @@ public class Dashboard implements ToolWindowFactory {
 
         addMemberItem.addActionListener(e -> {
             String email = Messages.showInputDialog(project, "Enter user email", "Add Member", null, null, null);
+            String filename = filesList.getSelectedValue().toApplicationFileString();
 
             if (email != null && !email.equals("")) {
-
+                socket.emit("addMember", email, filename);
             }
         });
 
         removeMemberItem.addActionListener(e -> {
             String email = Messages.showInputDialog(project, "Enter user email", "Remove Member", null, null, null);
+            String filename = filesList.getSelectedValue().toApplicationFileString();
 
             if (email != null && !email.equals("")) {
-
+                socket.emit("removeMember", email, filename);
             }
         });
 
@@ -477,6 +482,15 @@ public class Dashboard implements ToolWindowFactory {
                         refreshSessionsList();
                     });
                 }
+            }).on("users", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONArray usersJson = (JSONArray) args[0];
+                    users = GsonUtil.getGson().fromJson(usersJson.toString(), userListType);
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        refreshUsersList();
+                    });
+                }
             }).on("sessionCreationFailed", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
@@ -516,6 +530,10 @@ public class Dashboard implements ToolWindowFactory {
                     .filter((session) -> selectedFile.equals(DEFAULT_FILE) ? session.getFile() == null : selectedFile.toApplicationFileString().equals(session.getFile()))
                     .forEach((session) -> sessionsListModel.addElement(session));
         }
+    }
+
+    private void refreshUsersList() {
+
     }
 
     @Override
