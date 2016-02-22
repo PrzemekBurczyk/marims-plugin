@@ -472,7 +472,9 @@ public class Dashboard implements ToolWindowFactory {
                 int clickedIndex = list.locationToIndex(e.getPoint());
                 if (SwingUtilities.isRightMouseButton(e) && !list.isSelectionEmpty()) {
                     list.setSelectedIndex(clickedIndex);
-                    fileUsersPopupMenu.show(list, e.getX(), e.getY());
+                    if (!filesList.getSelectedValue().equals(DEFAULT_FILE)) {
+                        fileUsersPopupMenu.show(list, e.getX(), e.getY());
+                    }
                 }
             }
         });
@@ -620,9 +622,11 @@ public class Dashboard implements ToolWindowFactory {
         ApplicationFile selectedFile = filesList.getSelectedValue();
         LoggedUser loggedUser = marimsApiClient.getLoggedUser();
         if (loggedUser != null && selectedFile != null) {
-            users.stream()
-                    .filter((user) -> !user.getId().equals(loggedUser.getId()) && !user.getMemberOfFiles().contains(selectedFile.toApplicationFileString()))
-                    .forEach((user) -> allUsersListModel.addElement(user));
+            if (!selectedFile.equals(DEFAULT_FILE)) {
+                users.stream()
+                        .filter((user) -> !user.getId().equals(loggedUser.getId()) && !user.getMemberOfFiles().contains(selectedFile.toApplicationFileString()))
+                        .forEach((user) -> allUsersListModel.addElement(user));
+            }
         }
     }
 
@@ -631,9 +635,15 @@ public class Dashboard implements ToolWindowFactory {
         ApplicationFile selectedFile = filesList.getSelectedValue();
         LoggedUser loggedUser = marimsApiClient.getLoggedUser();
         if (loggedUser != null && selectedFile != null) {
-            users.stream()
-                    .filter((user) -> !user.getId().equals(loggedUser.getId()) && user.getMemberOfFiles().contains(selectedFile.toApplicationFileString()))
-                    .forEach((user) -> fileUsersListModel.addElement(user));
+            if (!selectedFile.equals(DEFAULT_FILE)) {
+                users.stream()
+                        .filter((user) -> !user.getId().equals(loggedUser.getId()) && user.getMemberOfFiles().contains(selectedFile.toApplicationFileString()))
+                        .forEach((user) -> fileUsersListModel.addElement(user));
+            } else {
+                users.stream()
+                        .filter((user) -> !user.getId().equals(loggedUser.getId()))
+                        .forEach((user) -> fileUsersListModel.addElement(user));
+            }
         }
     }
 
