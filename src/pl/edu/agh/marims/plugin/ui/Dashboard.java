@@ -50,6 +50,8 @@ public class Dashboard implements ToolWindowFactory {
     private static final ApplicationFile DEFAULT_FILE = new ApplicationFile("[]Others");
     private DefaultListModel<ApplicationFile> filesListModel;
     private DefaultListModel<Session> sessionsListModel;
+    private DefaultListModel<User> allUsersListModel;
+    private DefaultListModel<User> fileUsersListModel;
 
     private static final String EMAIL_PATTERN =
             "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
@@ -102,6 +104,8 @@ public class Dashboard implements ToolWindowFactory {
 
     private final JPopupMenu filesPopupMenu = new JPopupMenu();
     private final JPopupMenu sessionsPopupMenu = new JPopupMenu();
+    private final JPopupMenu allUsersPopupMenu = new JPopupMenu();
+    private final JPopupMenu fileUsersPopupMenu = new JPopupMenu();
 
     private final Type stringListType = new TypeToken<List<String>>() {
     }.getType();
@@ -125,6 +129,12 @@ public class Dashboard implements ToolWindowFactory {
 
         sessionsListModel = new DefaultListModel<>();
         sessionsList.setModel(sessionsListModel);
+
+        allUsersListModel = new DefaultListModel<>();
+        allUsersList.setModel(allUsersListModel);
+
+        fileUsersListModel = new DefaultListModel<>();
+        fileUsersList.setModel(fileUsersListModel);
 
         JMenuItem createSessionItem = new JMenuItem("Create session");
         JMenuItem removeFileItem = new JMenuItem("Remove file");
@@ -213,6 +223,36 @@ public class Dashboard implements ToolWindowFactory {
         });
 
         sessionsPopupMenu.add(connectToSessionItem);
+
+        JMenuItem addAsMemberItem = new JMenuItem("Add as member");
+        JMenuItem removeFromMembersItem = new JMenuItem("Remove from members");
+
+        addAsMemberItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String email = allUsersList.getSelectedValue().getEmail();
+                String filename = filesList.getSelectedValue().toApplicationFileString();
+
+                if (email != null && !email.equals("")) {
+                    socket.emit("addMember", email, filename);
+                }
+            }
+        });
+
+        removeFromMembersItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String email = fileUsersList.getSelectedValue().getEmail();
+                String filename = filesList.getSelectedValue().toApplicationFileString();
+
+                if (email != null && !email.equals("")) {
+                    socket.emit("removeMember", email, filename);
+                }
+            }
+        });
+
+        allUsersPopupMenu.add(addAsMemberItem);
+        fileUsersPopupMenu.add(removeFromMembersItem);
     }
 
     private void loadApplicationData(File file) throws IOException {
@@ -393,7 +433,10 @@ public class Dashboard implements ToolWindowFactory {
             }
         });
 
-        filesList.addListSelectionListener(e -> refreshSessionsList());
+        filesList.addListSelectionListener(e -> {
+            refreshUsersList();
+            refreshSessionsList();
+        });
 
         sessionsList.addMouseListener(new MouseAdapter() {
             @Override
@@ -404,6 +447,32 @@ public class Dashboard implements ToolWindowFactory {
                 if (SwingUtilities.isRightMouseButton(e) && !list.isSelectionEmpty()) {
                     list.setSelectedIndex(clickedIndex);
                     sessionsPopupMenu.show(list, e.getX(), e.getY());
+                }
+            }
+        });
+
+        allUsersList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mouseClicked(e);
+                JList list = (JList) e.getSource();
+                int clickedIndex = list.locationToIndex(e.getPoint());
+                if (SwingUtilities.isRightMouseButton(e) && !list.isSelectionEmpty()) {
+                    list.setSelectedIndex(clickedIndex);
+                    allUsersPopupMenu.show(list, e.getX(), e.getY());
+                }
+            }
+        });
+
+        fileUsersList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mouseClicked(e);
+                JList list = (JList) e.getSource();
+                int clickedIndex = list.locationToIndex(e.getPoint());
+                if (SwingUtilities.isRightMouseButton(e) && !list.isSelectionEmpty()) {
+                    list.setSelectedIndex(clickedIndex);
+                    fileUsersPopupMenu.show(list, e.getX(), e.getY());
                 }
             }
         });
@@ -518,8 +587,17 @@ public class Dashboard implements ToolWindowFactory {
 
     private void refreshFilesList(List<ApplicationFile> files) {
         filesListModel.clear();
-        files.forEach((file) -> filesListModel.addElement(file));
-        filesListModel.addElement(DEFAULT_FILE);
+        LoggedUser loggedUser = marimsApiClient.getLoggedUser();
+        User currentUser = users.stream()
+                .filter((user) -> user.getId().equals(loggedUser.getId()))
+                .findFirst()
+                .get();
+        if (loggedUser != null) {
+            files.stream()
+                    .filter((file) -> currentUser.getAuthorOfFiles().contains(file.toApplicationFileString()))
+                    .forEach((file) -> filesListModel.addElement(file));
+            filesListModel.addElement(DEFAULT_FILE);
+        }
     }
 
     private void refreshSessionsList() {
@@ -533,7 +611,30 @@ public class Dashboard implements ToolWindowFactory {
     }
 
     private void refreshUsersList() {
+        refreshAllUsersList();
+        refreshFileUsersList();
+    }
 
+    private void refreshAllUsersList() {
+        allUsersListModel.clear();
+        ApplicationFile selectedFile = filesList.getSelectedValue();
+        LoggedUser loggedUser = marimsApiClient.getLoggedUser();
+        if (loggedUser != null && selectedFile != null) {
+            users.stream()
+                    .filter((user) -> !user.getId().equals(loggedUser.getId()) && !user.getMemberOfFiles().contains(selectedFile.toApplicationFileString()))
+                    .forEach((user) -> allUsersListModel.addElement(user));
+        }
+    }
+
+    private void refreshFileUsersList() {
+        fileUsersListModel.clear();
+        ApplicationFile selectedFile = filesList.getSelectedValue();
+        LoggedUser loggedUser = marimsApiClient.getLoggedUser();
+        if (loggedUser != null && selectedFile != null) {
+            users.stream()
+                    .filter((user) -> !user.getId().equals(loggedUser.getId()) && user.getMemberOfFiles().contains(selectedFile.toApplicationFileString()))
+                    .forEach((user) -> fileUsersListModel.addElement(user));
+        }
     }
 
     @Override
