@@ -246,13 +246,22 @@
                       <size top="5" left="5" bottom="5" right="5"/>
                     </border>
                     <children>
-                      <component id="e0182" class="javax.swing.JList" binding="filesList">
+                      <grid id="c4f95" layout-manager="BorderLayout" hgap="0" vgap="0">
                         <constraints border-constraint="Center"/>
-                        <properties>
-                          <model/>
-                          <selectionMode value="0"/>
-                        </properties>
-                      </component>
+                        <properties/>
+                        <border type="line">
+                          <color color="-10394522"/>
+                        </border>
+                        <children>
+                          <component id="e0182" class="javax.swing.JList" binding="filesList">
+                            <constraints border-constraint="Center"/>
+                            <properties>
+                              <model/>
+                              <selectionMode value="0"/>
+                            </properties>
+                          </component>
+                        </children>
+                      </grid>
                     </children>
                   </grid>
                   <grid id="6cfcc" layout-manager="BorderLayout" hgap="0" vgap="0">
@@ -264,12 +273,21 @@
                       <size top="5" left="5" bottom="5" right="5"/>
                     </border>
                     <children>
-                      <component id="6cff8" class="javax.swing.JList" binding="sessionsList">
+                      <grid id="62b45" layout-manager="BorderLayout" hgap="0" vgap="0">
                         <constraints border-constraint="Center"/>
-                        <properties>
-                          <selectionMode value="0"/>
-                        </properties>
-                      </component>
+                        <properties/>
+                        <border type="line">
+                          <color color="-10394522"/>
+                        </border>
+                        <children>
+                          <component id="6cff8" class="javax.swing.JList" binding="sessionsList">
+                            <constraints border-constraint="Center"/>
+                            <properties>
+                              <selectionMode value="0"/>
+                            </properties>
+                          </component>
+                        </children>
+                      </grid>
                     </children>
                   </grid>
                   <grid id="2ec21" layout-manager="BorderLayout" hgap="0" vgap="0">
@@ -281,10 +299,19 @@
                       <size top="5" left="5" bottom="5" right="5"/>
                     </border>
                     <children>
-                      <component id="3d286" class="javax.swing.JList" binding="allUsersList">
+                      <grid id="4f50" layout-manager="BorderLayout" hgap="0" vgap="0">
                         <constraints border-constraint="Center"/>
                         <properties/>
-                      </component>
+                        <border type="line">
+                          <color color="-10394522"/>
+                        </border>
+                        <children>
+                          <component id="3d286" class="javax.swing.JList" binding="allUsersList">
+                            <constraints border-constraint="Center"/>
+                            <properties/>
+                          </component>
+                        </children>
+                      </grid>
                     </children>
                   </grid>
                   <grid id="43ba" layout-manager="BorderLayout" hgap="0" vgap="0">
@@ -296,10 +323,19 @@
                       <size top="5" left="5" bottom="5" right="5"/>
                     </border>
                     <children>
-                      <component id="9e654" class="javax.swing.JList" binding="fileUsersList">
+                      <grid id="9c44a" layout-manager="BorderLayout" hgap="0" vgap="0">
                         <constraints border-constraint="Center"/>
                         <properties/>
-                      </component>
+                        <border type="line">
+                          <color color="-10394522"/>
+                        </border>
+                        <children>
+                          <component id="9e654" class="javax.swing.JList" binding="fileUsersList">
+                            <constraints border-constraint="Center"/>
+                            <properties/>
+                          </component>
+                        </children>
+                      </grid>
                     </children>
                   </grid>
                 </children>
