@@ -590,15 +590,17 @@ public class Dashboard implements ToolWindowFactory {
     private void refreshFilesList(List<ApplicationFile> files) {
         filesListModel.clear();
         LoggedUser loggedUser = marimsApiClient.getLoggedUser();
-        User currentUser = users.stream()
-                .filter((user) -> user.getId().equals(loggedUser.getId()))
-                .findFirst()
-                .get();
-        if (loggedUser != null) {
-            files.stream()
-                    .filter((file) -> currentUser.getAuthorOfFiles().contains(file.toApplicationFileString()))
-                    .forEach((file) -> filesListModel.addElement(file));
-            filesListModel.addElement(DEFAULT_FILE);
+        if (users != null) {
+            User currentUser = users.stream()
+                    .filter((user) -> user.getId().equals(loggedUser.getId()))
+                    .findFirst()
+                    .get();
+            if (loggedUser != null) {
+                files.stream()
+                        .filter((file) -> currentUser.getAuthorOfFiles().contains(file.toApplicationFileString()))
+                        .forEach((file) -> filesListModel.addElement(file));
+                filesListModel.addElement(DEFAULT_FILE);
+            }
         }
     }
 
