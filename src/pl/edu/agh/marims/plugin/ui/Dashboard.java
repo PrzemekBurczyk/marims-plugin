@@ -32,6 +32,8 @@ import retrofit.Retrofit;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -210,6 +212,7 @@ public class Dashboard implements ToolWindowFactory {
         filesPopupMenu.add(removeMemberItem);
 
         JMenuItem connectToSessionItem = new JMenuItem("Connect to session");
+        JMenuItem copySessionUrl = new JMenuItem("Copy session URL");
 
         connectToSessionItem.addActionListener(new ActionListener() {
             @Override
@@ -223,7 +226,19 @@ public class Dashboard implements ToolWindowFactory {
             }
         });
 
+        copySessionUrl.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String sessionId = sessionsList.getSelectedValue().getId();
+                String sessionUrl = Config.SERVER_URL + sessionId;
+                StringSelection selection = new StringSelection(sessionUrl);
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(selection, selection);
+            }
+        });
+
         sessionsPopupMenu.add(connectToSessionItem);
+        sessionsPopupMenu.add(copySessionUrl);
 
         JMenuItem addAsMemberItem = new JMenuItem("Add as member");
         JMenuItem removeFromMembersItem = new JMenuItem("Remove from members");
