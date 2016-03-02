@@ -59,6 +59,7 @@ public class Dashboard implements ToolWindowFactory {
 
     private List<Session> sessions;
     private List<User> users;
+    private List<ApplicationFile> files;
 
     private JPanel cardPanel;
 
@@ -537,11 +538,11 @@ public class Dashboard implements ToolWindowFactory {
                 public void call(Object... args) {
                     JSONArray filesJson = (JSONArray) args[0];
                     List<String> filesStrings = GsonUtil.getGson().fromJson(filesJson.toString(), stringListType);
-                    List<ApplicationFile> files = filesStrings.stream()
+                    files = filesStrings.stream()
                             .map(ApplicationFile::new)
                             .collect(Collectors.toList());
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        refreshFilesList(files);
+                        refreshFilesList();
                     });
                 }
             }).on("sessions", new Emitter.Listener() {
@@ -560,6 +561,7 @@ public class Dashboard implements ToolWindowFactory {
                     users = GsonUtil.getGson().fromJson(usersJson.toString(), userListType);
                     ApplicationManager.getApplication().invokeLater(() -> {
                         refreshUsersList();
+                        refreshFilesList();
                     });
                 }
             }).on("sessionCreationFailed", new Emitter.Listener() {
@@ -587,7 +589,7 @@ public class Dashboard implements ToolWindowFactory {
         socket.disconnect();
     }
 
-    private void refreshFilesList(List<ApplicationFile> files) {
+    private void refreshFilesList() {
         filesListModel.clear();
         LoggedUser loggedUser = marimsApiClient.getLoggedUser();
         if (users != null) {
