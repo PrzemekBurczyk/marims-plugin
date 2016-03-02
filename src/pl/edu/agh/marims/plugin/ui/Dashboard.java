@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Dashboard implements ToolWindowFactory {
-    private static final ApplicationFile DEFAULT_FILE = new ApplicationFile("[]Others");
+    private static final ApplicationFile DEFAULT_FILE = new ApplicationFile("[][]Others");
     private DefaultListModel<ApplicationFile> filesListModel;
     private DefaultListModel<Session> sessionsListModel;
     private DefaultListModel<User> allUsersListModel;
