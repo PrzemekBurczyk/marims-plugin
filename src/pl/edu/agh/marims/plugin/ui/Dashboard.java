@@ -31,6 +31,7 @@ import retrofit.Response;
 import retrofit.Retrofit;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -383,8 +384,8 @@ public class Dashboard implements ToolWindowFactory {
 
         chooseFileButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser(project.getBasePath());
-//            FileNameExtensionFilter filter = new FileNameExtensionFilter("Android APKs", "apk");
-//            fileChooser.setFileFilter(filter);
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Android APKs", "apk");
+            fileChooser.setFileFilter(filter);
             int selectedOption = fileChooser.showOpenDialog(contentPanel);
             if (selectedOption == JFileChooser.APPROVE_OPTION) {
                 selectedFile = fileChooser.getSelectedFile();
