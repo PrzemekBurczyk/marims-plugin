@@ -18,10 +18,10 @@ public class BrowserPanel extends JPanel {
     private WebEngine webEngine;
 
     public BrowserPanel() {
-        jfxPanel = new JFXPanel();
         Platform.setImplicitExit(false);
-        this.setLayout(new BorderLayout());
-        Platform.runLater(this::initWebView);
+        jfxPanel = new JFXPanel();
+        BrowserPanel.this.setLayout(new BorderLayout());
+        Platform.runLater(BrowserPanel.this::initWebView);
     }
 
     private void initWebView() {

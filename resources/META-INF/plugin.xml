@@ -1,7 +1,7 @@
 <idea-plugin version="2">
     <id>pl.edu.agh.marims.plugin</id>
     <name>Marims</name>
-    <version>0.1</version>
+    <version>0.1.1</version>
     <vendor email="przemek.burczyk@gmail.com" url="http://www.marims.pl">Przemek Burczyk</vendor>
 
     <description><![CDATA[
