@@ -404,6 +404,7 @@ public class Dashboard implements ToolWindowFactory {
         });
 
         sendFileButton.addActionListener(e -> {
+            sendFileButton.setEnabled(false);
             RequestBody file = new FileRequestBody(selectedFile, (current, max) -> {
                 ApplicationManager.getApplication().invokeLater(() -> {
                     sendFileProgressBar.setValue((int) (current * 100 / max));
@@ -418,6 +419,7 @@ public class Dashboard implements ToolWindowFactory {
                 @Override
                 public void onResponse(Response<Void> response, Retrofit retrofit) {
                     ApplicationManager.getApplication().invokeLater(() -> {
+                        sendFileButton.setEnabled(true);
                         if (response.code() >= 200 && response.code() < 300) {
                             Messages.showInfoMessage(project, "File upload successful", "File Upload");
                         } else {
@@ -429,6 +431,7 @@ public class Dashboard implements ToolWindowFactory {
                 @Override
                 public void onFailure(Throwable throwable) {
                     ApplicationManager.getApplication().invokeLater(() -> {
+                        sendFileButton.setEnabled(true);
                         Messages.showErrorDialog(project, "File upload failed", "File Upload");
                     });
                 }
